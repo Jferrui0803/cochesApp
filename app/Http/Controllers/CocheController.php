@@ -9,27 +9,44 @@ use Illuminate\Http\Request;
 
 class CocheController extends Controller {
 
-    private function asegurar($request, $name, $value){
-       /* $x = $request->$name;
-        if($x === null){
-            $x = $value;
-        }
-        return $x;*/
-        return $request->has($name) ? $request->$name : $value;
+    private function checkValue($name, $values, $value, $request) {
+        $v = $request->has($name) ? $request->$name : $value;
+        return !in_array($v, $values) ? $value : $v;
+    }
+
+    private function orderBy($request) {
+        $fields = ['c.id', 'c.marca', 'c.modelo', 'c.precio'];
+        $defaultField = '';
+        return $this->checkValue('orderBy', $fields, $defaultField,$request);  
+    }
+
+    private function orderType($request) {
+        $values = ['asc', 'desc'];
+        $defaultValue = 'asc';
+        return $this->checkValue('orderType', $values, $defaultValue,$request);
+    }
+
+    private function rpp($request) {
+        $values = [5, 10, 20, 50, 100];
+        $defaultValue = '10';
+        return $this->checkValue('rpp', $values, $defaultValue,$request);
     }
 
 
     public function index(Request $request)  {
         //rpp - registros por página
         $rpps = [10, 20, 50, 100];
-        $orderBy = $request->has('orderBy') ? $request->orderBy : '';
+        $orderBy = $this->orderBy($request);
         $order = '';
         if($orderBy !== '') {
-            $orderType = $request->has('orderType') ? $request->orderType : 'asc';
+            $orderType = $this->orderType($request);
             $order =  $orderBy . ' ' . $orderType . ',' ;
         } 
         $orderType = 'asc';
-        $rpp = $request->has('rpp') ? $request->rpp : 10;
+        $rpp = $this->rpp($request);
+        if(!is_int($rpp)){
+            $rpp = 10;
+        }
         $page = $request->has('page') ? $request->page : 1;
         $offset = ($page - 1) * $rpp;
         $condition = '';
