@@ -44,9 +44,6 @@ class CocheController extends Controller {
         } 
         $orderType = 'asc';
         $rpp = $this->rpp($request);
-        if(!is_int($rpp)){
-            $rpp = 10;
-        }
         $page = $request->has('page') ? $request->page : 1;
         $offset = ($page - 1) * $rpp;
         $condition = '';
