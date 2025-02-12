@@ -9,4 +9,8 @@ class Coche extends Model {
 
     //rellenable masivamente
     protected $fillable = ['marca', 'modelo', 'precio'];
+
+    public function detalles() {
+        return $this->hasMany('App\Models\CarritoDetalle', 'carrito_id');
+    }
 }

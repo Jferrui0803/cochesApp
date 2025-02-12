@@ -10,7 +10,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class CocheController extends Controller {
 
-    const ORDER_BY = ['c.marca', 'c.id', 'c.modelo', 'c.precio'];
+    const ORDER_BY = ['marca', 'id', 'modelo', 'precio'];
     const ORDER_TYPE = ['asc', 'desc'];
     const RPPS = [10, 20, 50, 100];
 
@@ -51,10 +51,10 @@ class CocheController extends Controller {
         $q = '';
         if($request->has('q')) {
             $q = $request->q;
-            $condition = 'and c.id like :q1 or
-	                        c.marca like :q2 or
-	                        c.modelo like :q3 or
-	                        c.precio like :q4';
+            $condition = 'and id like :q1 or
+	                        marca like :q2 or
+	                        modelo like :q3 or
+	                        precio like :q4';
             $params = [
                 'q1' => "%$q%",
                 'q2' => "%$q%",
@@ -63,13 +63,14 @@ class CocheController extends Controller {
             ];
         }
         $sql = "select *
-                from coche c
+                from coche 
                 where true $condition
-                order by $order c.marca asc, c.modelo asc
+                order by $order marca asc, modelo asc
                 limit $offset , $rpp";
+
         $coches = DB::select($sql, $params);
         $sql = "select count(*) total 
-                from coche c 
+                from coche  
                 where true $condition";
         $count = DB::select($sql, $params);
         $total = $count[0]->total;
@@ -78,8 +79,24 @@ class CocheController extends Controller {
         // $coches = Coche::paginate(10);
         // dd($paginator, $coches);
 
+        $coche = new Coche();
+        if ($request->has('q')){
+            $coche = $coche->where('id', 'like', "%$q%")
+                            ->orWhere('marca', 'like', "%$q%")
+                            ->orWhere('modelo', 'like', "%$q%")
+                            ->orWhere('precio', 'like', "%$q%");
+        }
+
+        if ($order != '') {
+            $coche = $coche->orderBy($orderBy, $orderType);
+        }
+        $coche = $coche->orderBy('marca', 'asc');
+        $coche = $coche->orderBy('modelo', 'asc');
+
+        $vehiculos = $coche->paginate($rpp);
+
        
 
-        return view('coche.index', compact('coches', 'orderBy', 'orderType', 'q', 'rpp', 'rpps'));
+        return view('coche.index', compact('coches', 'orderBy', 'orderType', 'q', 'rpp', 'rpps', 'vehiculos'));
     }
 }
